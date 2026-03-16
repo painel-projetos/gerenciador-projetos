@@ -56,7 +56,6 @@ h1, h2, h3, h4 {
    Layout Structure
    ========================================= */
 .app-container {
-    display: flex;
     min-height: 100vh;
 }
 
@@ -129,7 +128,7 @@ select:focus {
 
 /* Main Content */
 .main-content {
-    flex: 1;
+    min-height: 100vh;
     margin-left: var(--sidebar-width);
     padding: 32px 48px;
     background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05) 0%, transparent 40%), var(--bg-dark);
@@ -659,10 +658,6 @@ textarea:focus, input[type="date"]:focus, input[type="text"].form-control:focus,
 
 /* Para Celulares (Até 768px) */
 @media (max-width: 768px) {
-    .app-container {
-        flex-direction: column;
-    }
-
     /* Transforma Sidebar em um Header superior que esconde os filtros por padrão mas deixa título solto */
     .sidebar {
         width: 100%;
