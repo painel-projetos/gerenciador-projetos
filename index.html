@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Projetos Estratégicos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="ph ph-briefcase"></i>
+                <h2>ProjManager</h2>
+            </div>
+            
+            <div class="filters-container">
+                <h3>Filtros Rápidos</h3>
+                <div class="filter-group">
+                    <label for="filter-analista">Analista Responsável</label>
+                    <select id="filter-analista">
+                        <option value="all">Todos os Analistas</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-categoria">Categoria</label>
+                    <select id="filter-categoria">
+                        <option value="all">Todas as Categorias</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-status">Status de Prazo</label>
+                    <select id="filter-status">
+                        <option value="all">Todos</option>
+                        <option value="no_prazo">No Prazo</option>
+                        <option value="atrasado">Atrasado</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-prioridade">Prioridade</label>
+                    <select id="filter-prioridade">
+                        <option value="all">Todas as Prioridades</option>
+                    </select>
+                </div>
+                
+                <button class="btn-primary" id="btn-clear-filters">Limpar Filtros</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Painel de Gestão à Vista</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" id="btn-novo-projeto">
+                        <i class="ph ph-plus-circle"></i> Novo Projeto
+                    </button>
+                    <button class="btn-action export-btn" id="btn-exportar" style="margin-left: 12px;">
+                        <i class="ph ph-download-simple"></i> Exportar CSV
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard KPIs -->
+            <section class="dashboard-kpis">
+                <div class="kpi-card">
+                    <div class="kpi-icon total"><i class="ph ph-squares-four"></i></div>
+                    <div class="kpi-info">
+                        <span class="kpi-label">Total de Projetos</span>
+                        <h3 id="kpi-total">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon on-track"><i class="ph ph-check-circle"></i></div>
+                    <div class="kpi-info">
+                        <span class="kpi-label">No Prazo / Concluídos</span>
+                        <h3 id="kpi-noprazo">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon delayed"><i class="ph ph-warning-circle"></i></div>
+                    <div class="kpi-info">
+                        <span class="kpi-label">Projetos Atrasados</span>
+                        <h3 id="kpi-atrasado">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon action"><i class="ph ph-bell-ringing"></i></div>
+                    <div class="kpi-info">
+                        <span class="kpi-label">Ações Pendentes</span>
+                        <h3 id="kpi-acoes">0</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção de Gráficos Analíticos -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <h3>Impacto por Analista (Workload)</h3>
+                    <canvas id="chartWorkload"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribuição por Categoria</h3>
+                    <canvas id="chartCategoria"></canvas>
+                </div>
+            </section>
+
+            <!-- Projects Table Area -->
+            <section class="projects-section">
+                <div class="section-header">
+                    <h2>Relação de Projetos</h2>
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Buscar por descrição ou objetivo...">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="projects-table">
+                        <thead>
+                            <tr>
+                                <th>Descrição do Projeto</th>
+                                <th>Categoria</th>
+                                <th>Prioridade</th>
+                                <th>Responsável</th>
+                                <th>Objetivo (Op/Fin)</th>
+                                <th>Data Inicial</th>
+                                <th>Previsão Fim</th>
+                                <th>Realizado</th>
+                                <th>Próxima Ação (Status)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-tbody">
+                            <!-- Rows rendered via JS -->
+                        </tbody>
+                    </table>
+                    <div id="empty-state" class="empty-state hidden">
+                        <i class="ph ph-folder-open"></i>
+                        <p>Nenhum projeto encontrado para os filtros atuais.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Painel do Projeto -->
+    <div class="modal-overlay hidden" id="status-modal">
+        <div class="modal-content large-panel">
+            <div class="modal-header">
+                <h2>Detalhes do Projeto</h2>
+                <button class="btn-close" id="btn-close-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body panel-body">
+                
+                <!-- Informações do Projeto -->
+                <div class="project-info-section">
+                    <h3 id="modal-project-title" class="project-title-highlight">Nome do Projeto</h3>
+                    <div class="project-meta">
+                        <p><strong>Responsável:</strong> <span id="modal-project-resp"></span></p>
+                        <p><strong>Categoria:</strong> <span id="modal-project-cat"></span></p>
+                        <p><strong>Prioridade:</strong> <span id="modal-project-prio"></span></p>
+                        <p><strong>Objetivo:</strong> <span id="modal-project-obj"></span></p>
+                        <p><strong>Data Inicial:</strong> <span id="modal-project-start"></span></p>
+                        <p><strong>Previsão de Fim:</strong> <span id="modal-project-end"></span></p>
+                    </div>
+                </div>
+
+                <div class="panel-columns">
+                    <!-- Esquerda: Adicionar Atualização -->
+                    <div class="panel-left">
+                        <div class="update-form-box">
+                            <h4><i class="ph ph-plus-circle"></i> Nova Atualização</h4>
+                            <div class="form-group">
+                                <label for="new-status-text">Relato da Movimentação / Próxima Ação</label>
+                                <textarea id="new-status-text" rows="4" placeholder="Descreva o que aconteceu ou a próxima ação do projeto..."></textarea>
+                            </div>
+                            
+                            <div class="form-group date-group">
+                                <label for="new-real-date">Data Final Realizada (Apenas se o projeto foi concluído agora)</label>
+                                <input type="date" id="new-real-date">
+                            </div>
+
+                            <button class="btn-primary full-width" id="btn-save-status">Registrar Movimentação</button>
+                        </div>
+                    </div>
+
+                    <!-- Direita: Histórico -->
+                    <div class="panel-right">
+                        <div class="history-section">
+                            <h3><i class="ph ph-clock-counter-clockwise"></i> Histórico de Movimentações</h3>
+                            <div class="timeline" id="modal-timeline">
+                                <!-- Timeline items rendered via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Novo Projeto -->
+    <div class="modal-overlay hidden" id="add-project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Novo Projeto Estratégico</h2>
+                <button class="btn-close" id="btn-close-add-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="add-nome">Descrição do Projeto</label>
+                    <input type="text" id="add-nome" class="form-control" placeholder="Ex: Expansão Nacional 2026">
+                </div>
+                
+                <div class="form-group">
+                    <label for="add-objetivo">Objetivo Operacional / Financeiro</label>
+                    <input type="text" id="add-objetivo" class="form-control" placeholder="Meta principal (ex: Reduzir churn em 5%)">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="add-responsavel">Responsável</label>
+                        <select id="add-responsavel" class="form-control"></select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="add-categoria">Categoria</label>
+                        <select id="add-categoria" class="form-control"></select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="add-prioridade">Prioridade de Risco</label>
+                        <select id="add-prioridade" class="form-control"></select>
+                    </div>
+                    
+                    <div class="form-group date-group">
+                        <label for="add-data-fim">Data Final Prevista</label>
+                        <input type="date" id="add-data-fim" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label for="add-acao-inicial">Primeira Ação / Status Inicial</label>
+                    <textarea id="add-acao-inicial" rows="3" placeholder="O que vai ser feito agora para iniciar esse projeto?"></textarea>
+                </div>
+
+                <button class="btn-primary full-width" id="btn-salvar-novo-projeto">Criar Projeto e Lançar ao Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
