@@ -37,10 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let workloadChartInstance = null;
     let categoriaChartInstance = null;
 
-    // Persistência
-    function saveToLocalStorage() {
-        localStorage.setItem('projmanager_db', JSON.stringify(window.appState));
-    }
+    // Persistência Remota Removida (Agora usa Firestore Direto)
 
     // Inicializa Filtros com os dados gerados no data.js (window.appState)
     function initFilters() {
@@ -398,10 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
             p.dataFinalRealizada = new Date(newDate).toISOString();
         }
 
-        saveToLocalStorage(); // <--- PERSISTE MUDANÇAS
+        // Envia atualização para a Nuvem
+        window.db.collection('projects').doc(p.id.toString()).update({
+            historico: p.historico,
+            dataFinalRealizada: p.dataFinalRealizada
+        });
 
         closeModal();
-        updateUI();
     }
 
     btnCloseModal.addEventListener('click', closeModal);
@@ -464,15 +464,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }]
         };
 
-        window.appState.projects.unshift(novoProjeto);
-        saveToLocalStorage(); // <--- PERSISTE MUDANÇAS
+        // Salva direto no Firestore usando o ID como chave do Documento
+        window.db.collection('projects').doc(novoProjeto.id.toString()).set(novoProjeto);
         
         closeAddModal();
-        updateUI();
         
-        // Destaca a busca para achar o projeto recém criado
+        // Destaca a busca para achar o projeto recém criado imediatamente
         searchInput.value = nome;
-        updateUI();
     }
 
     // Lógica para exportar Tabela filtrada em CSV
@@ -515,7 +513,40 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSalvarNovoProjeto.addEventListener('click', salvarNovoProjeto);
     btnExportar.addEventListener('click', exportToCSV);
 
-    // START APLICAÇÃO
-    initFilters();
-    updateUI();
+    btnExportar.addEventListener('click', exportToCSV);
+
+    // ==========================================
+    // START APLICAÇÃO FIREBASE REAL-TIME
+    // ==========================================
+    window.db.collection('projects').onSnapshot((snapshot) => {
+        const projectsLocal = [];
+        snapshot.forEach((doc) => {
+            projectsLocal.push(doc.data());
+        });
+        
+        // Ordena para que os projetos mais recentes fiquem no topo
+        projectsLocal.sort((a, b) => new Date(b.dataInicial) - new Date(a.dataInicial));
+        
+        window.appState.projects = projectsLocal;
+        
+        // Se o banco estiver vazio, popule-o com dados fakes (Mock)
+        if (projectsLocal.length === 0 && !window.seedRan) {
+            window.seedRan = true;
+            console.log("Banco Vazio. Populando mock data no Firebase Firestore...");
+            const mocks = window.generateProjects();
+            mocks.forEach(p => {
+                 window.db.collection('projects').doc(p.id.toString()).set(p);
+            });
+            return;
+        }
+
+        // Se é a primeira vez rodando, inicializa os combos
+        if (!window.filtersInitialized) {
+            initFilters();
+            window.filtersInitialized = true;
+        }
+        
+        // Renderiza tudo na tela instantaneamente reativo
+        updateUI();
+    });
 });

@@ -89,25 +89,15 @@ function generateProjects() {
     return projects;
 }
 
-// Estado Global no Window para acesso no app.js
-// Tenta carregar do LocalStorage primeiro, para manter a persistência se fechar a aba
-function loadInitialState() {
-    const saved = localStorage.getItem('projmanager_db');
-    if (saved) {
-        return JSON.parse(saved);
-    }
-    
-    // Se não tiver nada salvo ainda, gera os 50 iniciais
-    const newState = {
-        projects: generateProjects(),
-        analistas: Analistas,
-        categorias: Categorias,
-        prioridades: Prioridades
-    };
-    
-    // Salva pela primeira vez
-    localStorage.setItem('projmanager_db', JSON.stringify(newState));
-    return newState;
-}
+// Exportação Global para o app.js puxar e subir as constantes
+window.Analistas = Analistas;
+window.Categorias = Categorias;
+window.Prioridades = Prioridades;
+window.generateProjects = generateProjects;
 
-window.appState = loadInitialState();
+window.appState = {
+    projects: [],
+    analistas: Analistas,
+    categorias: Categorias,
+    prioridades: Prioridades
+};
