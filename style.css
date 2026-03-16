@@ -637,3 +637,114 @@ textarea:focus, input[type="date"]:focus, input[type="text"].form-control:focus,
     margin-bottom: 16px;
     opacity: 0.5;
 }
+
+/* =========================================
+   Mobile Responsiveness (Media Queries)
+   ========================================= */
+
+/* Para Tablets e Notebooks Menores (Até 1024px) */
+@media (max-width: 1024px) {
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .panel-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content {
+        padding: 24px;
+    }
+}
+
+/* Para Celulares (Até 768px) */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    /* Transforma Sidebar em um Header superior que esconde os filtros por padrão mas deixa título solto */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 16px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        z-index: 10;
+    }
+
+    .sidebar-header {
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+
+    .filters-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 16px;
+    }
+
+    /* Header superior focado */
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .header-actions {
+        width: 100%;
+    }
+    
+    .btn-primary, .btn-action {
+        flex: 1; /* Distribui botões lado a lado iguiamente no celular */
+        text-align: center;
+    }
+
+    /* Gráficos Menores no Celular */
+    .chart-container {
+        height: 300px;
+    }
+
+    /* Seção da Tabela com Busca esticada */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .search-bar { width: 100%; }
+    .search-bar input:focus { width: 100%; }
+
+    /* Modal Modal ocupa a tela quase toda */
+    .modal-content {
+        height: 95vh;
+        max-height: none;
+        max-width: 95%;
+        border-radius: var(--radius-md);
+    }
+
+    /* Tabela scroll com mais força */
+    .table-container {
+        scrollbar-width: thin; 
+    }
+}
+
+/* Para Celulares Bem Pequenos (Até 480px) */
+@media (max-width: 480px) {
+    .filters-container {
+        grid-template-columns: 1fr; /* 1 Filtro por linha */
+    }
+    
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .dashboard-kpis {
+        grid-template-columns: 1fr; /* KPIs viram 1 bloco por linha vertical */
+    }
+}
